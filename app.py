@@ -24,18 +24,22 @@ def search_images(query):
 def home():
     return render_template('index.html')
 
-@app.route('/recomendacoes', methods=['GET'])
+@app.route('/recomendacoes', methods=['GET'])  # Definindo a rota corretamente
 def obter_recomendacoes():
     nome_manga = request.args.get('nome_manga')
     if nome_manga:
-        recomendacoes = recomendacao.get_recommendations(nome_manga)
-        imagens = {}
-        for manga in recomendacoes:
-            imagem = search_images(f"{manga}")
-            imagens[manga] = imagem
-        return render_template('recomendacoes.html', recomendacoes=recomendacoes, imagens=imagens)
+        try:
+            recomendacoes = recomendacao.get_recommendations(nome_manga)
+            imagens = {}
+            for manga in recomendacoes:
+                imagem = search_images(f"{manga}")
+                imagens[manga] = imagem
+            return render_template('recomendacoes.html', recomendacoes=recomendacoes, imagens=imagens)
+        except IndexError:
+            return render_template('error.html')  # Renderiza a página de erro
     else:
         return jsonify({"error": "Por favor, forneça o parâmetro 'nome_manga' na consulta."})
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)
