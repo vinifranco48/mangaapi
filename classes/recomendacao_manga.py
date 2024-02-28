@@ -3,6 +3,7 @@ from sklearn.metrics.pairwise import linear_kernel
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from unidecode import unidecode
+from classes.editdistance import Edit_Distance_Custom
 
 class RecomendacaoManga:
     def __init__(self, dados):
@@ -26,9 +27,17 @@ class RecomendacaoManga:
     def get_recommendations(self, name):
         name_lower = name.lower()  # Converte o nome fornecido para minúsculas
         name_lower_normalized = self.preprocess_text(name_lower)  # Normaliza o nome fornecido
-        idx = self.df.index[self.df['Nome Processado'] == name_lower_normalized].tolist()[0]  # Encontra o índice do mangá com o nome fornecido
-        sim_scores = list(enumerate(self.cosine_similarities[idx]))  # Obtém as pontuações de similaridade para todos os mangás
-        sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)  # Ordena as pontuações em ordem decrescente
-        sim_scores = sim_scores[1:6]  # Seleciona os 5 principais mangás (excluindo o próprio mangá)
-        manga_indices = [i[0] for i in sim_scores]  # Obtém os índices dos mangás recomendados
-        return self.df['Nome'].iloc[manga_indices]  # Retorna os nomes dos mangás recomendados
+        # Calcula as distâncias de edição entre o nome fornecido e todos os nomes na base de dados
+        distances = [Edit_Distance_Custom(name_lower_normalized, self.preprocess_text(manga_name)).distance() for manga_name in self.df['Nome Processado']]
+        # Encontra o índice do mangá com o menor valor de distância de edição
+        idx = distances.index(min(distances))
+        # Obtém as pontuações de similaridade para todos os mangás
+        sim_scores = list(enumerate(self.cosine_similarities[idx]))
+        # Ordena as pontuações em ordem decrescente
+        sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+        # Seleciona os 5 principais mangás (excluindo o próprio mangá)
+        sim_scores = sim_scores[1:6]
+        # Obtém os índices dos mangás recomendados
+        manga_indices = [i[0] for i in sim_scores]
+        # Retorna os nomes dos mangás recomendados
+        return self.df['Nome'].iloc[manga_indices]

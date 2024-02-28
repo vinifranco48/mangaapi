@@ -3,7 +3,6 @@ from flask import request, jsonify, Flask, render_template
 import os
 import pandas as pd
 import requests
-
 dados = 'dados_mangar3.csv'
 df = pd.read_csv(dados)
 recomendacao = RecomendacaoManga(df)
